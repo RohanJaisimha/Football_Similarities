@@ -9,7 +9,6 @@ import json
 application = Flask(__name__)
 
 players_df = None
-loadData("./Data/Top5Leagues_201920_Stats.csv")
 
 def loadData(f_name):
     global players_df
@@ -139,6 +138,8 @@ def findSimilarities():
     )
     return json.dumps(similar_players)
 
+
+loadData("./Data/Top5Leagues_201920_Stats.csv")
 
 if __name__ == "__main__":
     application.run()
