@@ -104,14 +104,16 @@ def findkNN(player, k=5, attributes_to_compare=None):
 
     similar_players = []
 
-    for i in range(k + 1):
+    i = 0
+    while(i < k):
         distance, player_name, squad = heapq.heappop(distances)
-        if i == 0:
+        if player_name == player["name"]:
             # the lowest distance to a player is always that player themselves,
             # so we can ignore that the first match
             continue
         score = round((1 - distance / len(attributes_to_compare)) * 100, 3)
         similar_players.append([player_name, squad, score])
+        i += 1
 
     return similar_players
 
