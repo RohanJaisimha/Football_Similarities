@@ -1,0 +1,101 @@
+<html>
+    <head>
+        <title>
+            Similarities
+        </title>
+        <meta charset="utf-8">
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <label for="player_name">Choose a Player:</label>
+        <select id="player_name" name="player_name">    
+            {% for player_name in player_names %}
+                <option value="{{ player_name  }}">
+                    {{ player_name }}
+                </option>
+            {% endfor %}
+        </select> 
+
+        <br><br>
+
+        <label for="attributes">Choose attributes:</label>
+        <select name="attributes" id="attributes" multiple height="100">  
+            {% for attribute in attributes %}
+                <option value="{{ attribute  }}">
+                    {{ attribute }}
+                </option>
+            {% endfor %}
+        </select>  
+
+        <br><br>
+
+        <label for="k">Choose the number of players:</label>
+        <select name="k" id="k" height="100">  
+            {% for i in range(5, 51, 5) %}
+                <option value="{{ i }}">
+                    {{ i }}
+                </option>
+            {% endfor %}
+        </select> 
+
+        <br><br>
+
+        <input type="button" value="Submit" onclick="findSimilarities()">
+
+        <br><br>
+
+        <div id="results_table">
+        </div>
+        
+    </body>
+    <script>
+        function findSimilarities() {
+            let player_name = document.getElementById("player_name").value;
+            let attributes = getSelectedAttributes();
+            let k = document.getElementById("k").value;
+            let elem = document.getElementById("results_table");
+            let table_code = "Finding " + k + " closest matches to " + player_name + " based on " + attributes.join(", ") + "...";
+            elem.innerHTML = table_code;
+                
+            // making an ajax request to the server with the name of the player, the attributes, and k     
+            let request = $.ajax({
+                url: "/findSimilarities",
+                type: "post",
+                data: {"player_name": player_name,
+                       "attributes": JSON.stringify(attributes),
+                       "k": k}
+            });
+            request.done(function(response, textStatus, XHR) {
+                // response: the players that are most similar
+                // JSONified 2-d array of size k x 3, [Name, Team, Similarity Score]
+                // We go through this array and fill in the spaces
+                let data = JSON.parse(response);
+                let table_code = "<table border='1'><thead><th>Name</th><th>Team</th><th>Score</th></thead><tbody>";
+                for(let i = 0; i < data.length; i += 1) {
+                    table_code = table_code + "<tr><td>" + data[i][0] + "</td>";
+                    table_code = table_code + "<td>" + data[i][1] + "</td>";
+                    table_code = table_code + "<td>" + data[i][2] + "</td></tr>";
+                }
+                table_code += "</tbody></table>";
+                elem.innerHTML = table_code;
+                
+            });
+            request.fail(function(jqXHR, textStatus, errorThrown) {
+                console.error(errorThrown);
+            });
+        }
+        function getSelectedAttributes() {
+            let elem = document.getElementById("attributes");
+            let attributes = [];
+
+            for(let i = 0; i < elem.options.length; i += 1) {
+                let attribute = elem.options[i];
+                if(attribute.selected) {
+                    attributes.push(attribute.value);
+                }
+            }
+            
+            return attributes;
+        }
+    </script>
+</html>
