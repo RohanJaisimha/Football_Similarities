@@ -4,8 +4,23 @@
             Similarities
         </title>
         <meta charset="utf-8">
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>  
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <link rel="stylesheet" href="/resources/demos/style.css">
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     </head>
+    <style>
+        th, td {
+            vertical-align: top;
+        }
+        #age_slider {
+            width: 25%;
+        }
+        body {
+            padding: 15px;
+        }
+    </style>
     <body>
         <label for="player_name">Choose a Player:</label>
         <select id="player_name" name="player_name">    
@@ -18,22 +33,87 @@
 
         <br><br>
 
-        <label for="attributes">Choose attributes:</label>
-        <select name="attributes" id="attributes" multiple height="100">  
-            {% for attribute in attributes %}
-                <option value="{{ attribute  }}">
-                    {{ attribute }}
-                </option>
-            {% endfor %}
-        </select>  
+        Age: 
+        <span id="age_range"></span>      
+        <br>
+        <div id="age_slider">
+        </div>
+
+        <br><br>
+
+        Choose attributes:
+        <br>
+        <table>
+            <thead>
+                <th>
+                    <input type="checkbox" onchange="selectAll(this, 'attacking_attribute')">
+                    Attack
+                </th>
+                <th>
+                    <input type="checkbox" onchange="selectAll(this, 'defensive_attribute')">
+                    Defense
+                </th>
+                <th>
+                    <input type="checkbox" onchange="selectAll(this, 'dribbling_attribute')">
+                    Dribbling
+                </th>
+                <th>
+                    <input type="checkbox" onchange="selectAll(this, 'passing_attribute')">
+                    Passing
+                </th>
+                <th>
+                    <input type="checkbox" onchange="selectAll(this, 'discipline_attribute')">
+                    Discipline
+                </th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        {% for attribute in attacking_attributes %}
+                            <input type="checkbox" class="attribute attacking_attribute" value="{{ attribute }}">
+                            {{ attribute }}
+                            <br>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for attribute in defensive_attributes %}
+                            <input type="checkbox" class="attribute defensive_attribute" value="{{ attribute }}">
+                            {{ attribute }}
+                            <br>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for attribute in dribbling_attributes %}
+                            <input type="checkbox" class="attribute dribbling_attribute" value="{{ attribute }}">
+                            {{ attribute }}
+                            <br>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for attribute in passing_attributes %}
+                            <input type="checkbox" class="attribute passing_attribute" value="{{ attribute }}">
+                            {{ attribute }}
+                            <br>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for attribute in discipline_attributes %}
+                            <input type="checkbox" class="attribute discipline_attribute" value="{{ attribute }}">
+                            {{ attribute }}
+                            <br>
+                        {% endfor %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
         <br><br>
 
         <label for="k">Choose the number of players:</label>
         <select name="k" id="k" height="100">  
-            {% for i in range(5, 51, 5) %}
-                <option value="{{ i }}">
-                    {{ i }}
+            {% for k in range(5, 51, 5) %}
+                <option value="{{ k }}">
+                    {{ k }}
                 </option>
             {% endfor %}
         </select> 
@@ -53,6 +133,9 @@
             let player_name = document.getElementById("player_name").value;
             let attributes = getSelectedAttributes();
             let k = document.getElementById("k").value;
+            let age_range = [$("#age_slider").slider("values", 0), $("#age_slider").slider("values", 1)];
+            
+
             let elem = document.getElementById("results_table");
             let table_code = "Finding " + k + " closest matches to " + player_name + " based on " + attributes.join(", ") + "...";
             elem.innerHTML = table_code;
@@ -63,12 +146,13 @@
                 type: "post",
                 data: {"player_name": player_name,
                        "attributes": JSON.stringify(attributes),
-                       "k": k}
+                       "k": k,
+                       "age_range": JSON.stringify(age_range)}
             });
             request.done(function(response, textStatus, XHR) {
                 // response: the players that are most similar
                 // JSONified 2-d array of size k x 3, [Name, Team, Similarity Score]
-                // We go through this array and fill in the spaces
+                // We go through this array and fill in the table
                 let data = JSON.parse(response);
                 let table_code = "<table border='1'><thead><th>Name</th><th>Team</th><th>Score</th></thead><tbody>";
                 for(let i = 0; i < data.length; i += 1) {
@@ -85,17 +169,37 @@
             });
         }
         function getSelectedAttributes() {
-            let elem = document.getElementById("attributes");
+            let elem = document.getElementsByClassName("attribute");
             let attributes = [];
 
-            for(let i = 0; i < elem.options.length; i += 1) {
-                let attribute = elem.options[i];
-                if(attribute.selected) {
+            for(let i = 0; i < elem.length; i += 1) {
+                let attribute = elem[i];
+                if(attribute.checked) {
                     attributes.push(attribute.value);
                 }
             }
             
             return attributes;
         }
+        function selectAll(elem, type) {
+            let attributes = document.getElementsByClassName(type);
+
+            for(let i = 0; i < attributes.length; i += 1) {
+                attributes[i].checked = elem.checked
+            }
+        }
+        $(function() {
+            $("#age_slider").slider({
+                range: true,
+                min: {{ overall_min_age }},
+                max: {{ overall_max_age }},
+                values: [{{ overall_min_age }}, {{ overall_max_age }}],
+                slide: function(event, ui) {
+                    $("#age_range").text(ui.values[0] + " - " + ui.values[1]);
+                }
+            });
+            $("#age_range").text($("#age_slider").slider("values", 0) +
+              " - " + $("#age_slider").slider("values", 1));
+        });
     </script>
 </html>
