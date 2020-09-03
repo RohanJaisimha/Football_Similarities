@@ -41,28 +41,96 @@
 
         <br><br>
 
+        Choose teams:
+        <br>
+        <table>
+            <thead>
+                <th>
+                    <input type="checkbox" onchange="selectOrUnselectAll(this, 'english_team')">
+                    Premier League
+                </th>
+                <th>
+                    <input type="checkbox" onchange="selectOrUnselectAll(this, 'spanish_team')">
+                    La Liga
+                </th>
+                <th>
+                    <input type="checkbox" onchange="selectOrUnselectAll(this, 'german_team')">
+                    Bundesliga
+                </th>
+                <th>
+                    <input type="checkbox" onchange="selectOrUnselectAll(this, 'italian_team')">
+                    Serie A
+                </th>
+                <th>
+                    <input type="checkbox" onchange="selectOrUnselectAll(this, 'french_team')">
+                    Ligue 1
+                </th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        {% for team in english_teams %}
+                            <input type="checkbox" class="team english_team" value="{{ team }}">
+                            {{ team }}
+                            <br>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for team in spanish_teams %}
+                            <input type="checkbox" class="team spanish_team" value="{{ team }}">
+                            {{ team }}
+                            <br>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for team in german_teams %}
+                            <input type="checkbox" class="team german_team" value="{{ team }}">
+                            {{ team }}
+                            <br>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for team in italian_teams %}
+                            <input type="checkbox" class="team italian_team" value="{{ team }}">
+                            {{ team }}
+                            <br>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for team in french_teams %}
+                            <input type="checkbox" class="team french_team" value="{{ team }}">
+                            {{ team }}
+                            <br>
+                        {% endfor %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <br><br>
+        
         Choose attributes:
         <br>
         <table>
             <thead>
                 <th>
-                    <input type="checkbox" onchange="selectAll(this, 'attacking_attribute')">
+                    <input type="checkbox" onchange="selectOrUnselectAll(this, 'attacking_attribute')">
                     Attack
                 </th>
                 <th>
-                    <input type="checkbox" onchange="selectAll(this, 'defensive_attribute')">
+                    <input type="checkbox" onchange="selectOrUnselectAll(this, 'defensive_attribute')">
                     Defense
                 </th>
                 <th>
-                    <input type="checkbox" onchange="selectAll(this, 'dribbling_attribute')">
+                    <input type="checkbox" onchange="selectOrUnselectAll(this, 'dribbling_attribute')">
                     Dribbling
                 </th>
                 <th>
-                    <input type="checkbox" onchange="selectAll(this, 'passing_attribute')">
+                    <input type="checkbox" onchange="selectOrUnselectAll(this, 'passing_attribute')">
                     Passing
                 </th>
                 <th>
-                    <input type="checkbox" onchange="selectAll(this, 'discipline_attribute')">
+                    <input type="checkbox" onchange="selectOrUnselectAll(this, 'discipline_attribute')">
                     Discipline
                 </th>
             </thead>
@@ -134,20 +202,22 @@
             let attributes = getSelectedAttributes();
             let k = document.getElementById("k").value;
             let age_range = [$("#age_slider").slider("values", 0), $("#age_slider").slider("values", 1)];
-            
+            let teams = getSelectedTeams();
 
             let elem = document.getElementById("results_table");
-            let table_code = "Finding " + k + " closest matches to " + player_name + " based on " + attributes.join(", ") + "...";
+            let table_code = "Finding " + k + " closest matches to " + player_name + "...";
             elem.innerHTML = table_code;
                 
-            // making an ajax request to the server with the name of the player, the attributes, and k     
+            // making an ajax request to the server with the name of the player, the attributes, the range of ages, 
+            // the teams, and k     
             let request = $.ajax({
                 url: "/findSimilarities",
                 type: "post",
                 data: {"player_name": player_name,
                        "attributes": JSON.stringify(attributes),
                        "k": k,
-                       "age_range": JSON.stringify(age_range)}
+                       "age_range": JSON.stringify(age_range),
+                       "teams": JSON.stringify(teams)}
             });
             request.done(function(response, textStatus, XHR) {
                 // response: the players that are most similar
@@ -168,6 +238,19 @@
                 console.error(errorThrown);
             });
         }
+        function getSelectedTeams() {
+            let elem = document.getElementsByClassName("team");
+            let teams = [];
+
+            for(let i = 0; i < elem.length; i += 1) {
+                let team = elem[i];
+                if(team.checked) {
+                    teams.push(team.value);
+                }
+            }
+            
+            return teams;
+        }
         function getSelectedAttributes() {
             let elem = document.getElementsByClassName("attribute");
             let attributes = [];
@@ -181,11 +264,11 @@
             
             return attributes;
         }
-        function selectAll(elem, type) {
-            let attributes = document.getElementsByClassName(type);
+        function selectOrUnselectAll(elem, type) {
+            let checkboxes = document.getElementsByClassName(type);
 
-            for(let i = 0; i < attributes.length; i += 1) {
-                attributes[i].checked = elem.checked
+            for(let i = 0; i < checkboxes.length; i += 1) {
+                checkboxes[i].checked = elem.checked
             }
         }
         $(function() {
