@@ -20,6 +20,16 @@
         body {
             padding: 15px;
         }
+        td.team:hover, td.attribute:hover {
+            cursor: pointer;
+        }
+        td.team, td.attribute {
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid black;
+            padding-left: 5px;
+            padding-right: 5px;
+        }
     </style>
     <body>
         <label for="player_name">Choose a Player:</label>
@@ -41,7 +51,7 @@
 
         <br><br>
 
-        Choose teams:
+        Choose teams (leave blank to select all):
         <br>
         <table>
             <thead>
@@ -69,39 +79,59 @@
             <tbody>
                 <tr>
                     <td>
-                        {% for team in english_teams %}
-                            <input type="checkbox" class="team english_team" value="{{ team }}">
-                            {{ team }}
-                            <br>
-                        {% endfor %}
+                        <table>
+                            {% for team in english_teams %}
+                                <tr>
+                                    <td class="team english_team" onclick="changeColor(this)">
+                                        {{ team }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
                     </td>
                     <td>
-                        {% for team in spanish_teams %}
-                            <input type="checkbox" class="team spanish_team" value="{{ team }}">
-                            {{ team }}
-                            <br>
-                        {% endfor %}
+                        <table>
+                            {% for team in spanish_teams %}
+                                <tr>
+                                    <td class="team spanish_team" onclick="changeColor(this)">
+                                        {{ team }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
                     </td>
                     <td>
-                        {% for team in german_teams %}
-                            <input type="checkbox" class="team german_team" value="{{ team }}">
-                            {{ team }}
-                            <br>
-                        {% endfor %}
+                        <table>
+                            {% for team in german_teams %}
+                                <tr>
+                                    <td class="team german_team" onclick="changeColor(this)">
+                                        {{ team }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
                     </td>
                     <td>
-                        {% for team in italian_teams %}
-                            <input type="checkbox" class="team italian_team" value="{{ team }}">
-                            {{ team }}
-                            <br>
-                        {% endfor %}
+                        <table>
+                            {% for team in italian_teams %}
+                                <tr>
+                                    <td class="team italian_team" onclick="changeColor(this)">
+                                        {{ team }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
                     </td>
                     <td>
-                        {% for team in french_teams %}
-                            <input type="checkbox" class="team french_team" value="{{ team }}">
-                            {{ team }}
-                            <br>
-                        {% endfor %}
+                        <table>
+                            {% for team in french_teams %}
+                                <tr>
+                                    <td class="team french_team" onclick="changeColor(this)">
+                                        {{ team }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
                     </td>
                 </tr>
             </tbody>
@@ -109,7 +139,7 @@
 
         <br><br>
         
-        Choose attributes:
+        Choose attributes (leave blank to select all):
         <br>
         <table>
             <thead>
@@ -137,39 +167,59 @@
             <tbody>
                 <tr>
                     <td>
-                        {% for attribute in attacking_attributes %}
-                            <input type="checkbox" class="attribute attacking_attribute" value="{{ attribute }}">
-                            {{ attribute }}
-                            <br>
-                        {% endfor %}
+                        <table>
+                            {% for attribute in attacking_attributes %}
+                                <tr>
+                                    <td class="attribute attacking_attribute" onclick="changeColor(this)">
+                                        {{ attribute }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
                     </td>
                     <td>
-                        {% for attribute in defensive_attributes %}
-                            <input type="checkbox" class="attribute defensive_attribute" value="{{ attribute }}">
-                            {{ attribute }}
-                            <br>
-                        {% endfor %}
+                        <table>
+                            {% for attribute in defensive_attributes %}
+                                <tr>
+                                    <td class="attribute defensive_attribute" onclick="changeColor(this)">
+                                        {{ attribute }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
                     </td>
                     <td>
-                        {% for attribute in dribbling_attributes %}
-                            <input type="checkbox" class="attribute dribbling_attribute" value="{{ attribute }}">
-                            {{ attribute }}
-                            <br>
-                        {% endfor %}
+                        <table>
+                            {% for attribute in dribbling_attributes %}
+                                <tr>
+                                    <td class="attribute dribbling_attribute" onclick="changeColor(this)">
+                                        {{ attribute }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
                     </td>
                     <td>
-                        {% for attribute in passing_attributes %}
-                            <input type="checkbox" class="attribute passing_attribute" value="{{ attribute }}">
-                            {{ attribute }}
-                            <br>
-                        {% endfor %}
+                        <table>
+                            {% for attribute in passing_attributes %}
+                                <tr>
+                                    <td class="attribute passing_attribute" onclick="changeColor(this)">
+                                        {{ attribute }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
                     </td>
                     <td>
-                        {% for attribute in discipline_attributes %}
-                            <input type="checkbox" class="attribute discipline_attribute" value="{{ attribute }}">
-                            {{ attribute }}
-                            <br>
-                        {% endfor %}
+                        <table>
+                            {% for attribute in discipline_attributes %}
+                                <tr>
+                                    <td class="attribute discipline_attribute" onclick="changeColor(this)">
+                                        {{ attribute }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
                     </td>
                 </tr>
             </tbody>
@@ -203,6 +253,8 @@
             let k = document.getElementById("k").value;
             let age_range = [$("#age_slider").slider("values", 0), $("#age_slider").slider("values", 1)];
             let teams = getSelectedTeams();
+            console.log(attributes);
+            console.log(teams);
 
             let elem = document.getElementById("results_table");
             let table_code = "Finding " + k + " closest matches to " + player_name + "...";
@@ -239,36 +291,41 @@
             });
         }
         function getSelectedTeams() {
-            let elem = document.getElementsByClassName("team");
-            let teams = [];
+            let teams = document.getElementsByClassName("team");
+            let selected_teams = [];
 
-            for(let i = 0; i < elem.length; i += 1) {
-                let team = elem[i];
-                if(team.checked) {
-                    teams.push(team.value);
+            for(let i = 0; i < teams.length; i += 1) {
+                let team = teams[i];
+                if(team.style.backgroundColor != '') {
+                    selected_teams.push(team.innerText);
                 }
             }
             
-            return teams;
+            return selected_teams;
         }
         function getSelectedAttributes() {
-            let elem = document.getElementsByClassName("attribute");
-            let attributes = [];
+            let attributes = document.getElementsByClassName("attribute");
+            let selected_attributes = [];
 
-            for(let i = 0; i < elem.length; i += 1) {
-                let attribute = elem[i];
-                if(attribute.checked) {
-                    attributes.push(attribute.value);
+            for(let i = 0; i < attributes.length; i += 1) {
+                let attribute = attributes[i];
+                if(attribute.style.backgroundColor != '') {
+                    selected_attributes.push(attribute.innerText);
                 }
             }
             
-            return attributes;
+            return selected_attributes;
         }
         function selectOrUnselectAll(elem, type) {
-            let checkboxes = document.getElementsByClassName(type);
+            let tds = document.getElementsByClassName(type);
 
-            for(let i = 0; i < checkboxes.length; i += 1) {
-                checkboxes[i].checked = elem.checked
+            for(let i = 0; i < tds.length; i += 1) {
+                if(elem.checked) {
+                    select(tds[i]);
+                }
+                else {
+                    unselect(tds[i]);
+                }
             }
         }
         $(function() {
@@ -284,5 +341,20 @@
             $("#age_range").text($("#age_slider").slider("values", 0) +
               " - " + $("#age_slider").slider("values", 1));
         });
+        function changeColor(elem) {
+            if(elem.style.color) {    
+                unselect(elem);
+            }
+            else {
+                select(elem);
+            }
+        } 
+        function select(elem) {
+            elem.style.color = 'white';
+            elem.style.backgroundColor ='#800000'; // maroon
+        }
+        function unselect(elem) {
+            elem.style.color = elem.style.backgroundColor = '';
+        }
     </script>
 </html>

@@ -110,6 +110,7 @@ def findkNN(player, k=5, attributes_to_compare=[]):
     while i < k and i < len(players_df):
         distance, player_name, squad = heapq.heappop(distances)
         score = round((1 - distance / len(attributes_to_compare)) * 100, 3)
+        score = str("{:.3f}".format(score))
         similar_players.append([player_name, squad, score])
         i += 1
 
@@ -190,7 +191,7 @@ def findSimilarities():
     player = players_df[players_df["name"] == player_name].iloc[0]
     players_df = players_df[players_df["name"] != player_name]
 
-    similar_players = findkNN(player, k=k, attributes_to_compare=attributes_to_compare)
+    similar_players = findkNN(player, k, attributes_to_compare)
     loadData("./Data/Top5Leagues_201920_Stats.csv")
     return json.dumps(similar_players)
 
@@ -198,4 +199,4 @@ def findSimilarities():
 loadData("./Data/Top5Leagues_201920_Stats.csv")
 
 if __name__ == "__main__":
-    application.run(debug=True)
+    application.run(debug=True, port="5000", host="0.0.0.0")
