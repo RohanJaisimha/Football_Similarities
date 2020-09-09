@@ -30,16 +30,44 @@
             padding-left: 5px;
             padding-right: 5px;
         }
+        #search_area {
+            width: 300px;
+        }
+        #player_name_search_box {      
+            width: 300px;
+        }
+        .search_suggestion:hover {
+            background-color: #800000;
+            color: white;
+            width: 100%;
+            cursor: pointer;
+        }
+        .search_suggestion {
+            display:none;
+            width: 100%;
+        }
     </style>
     <body>
-        <label for="player_name">Choose a Player:</label>
-        <select id="player_name" name="player_name">    
-            {% for player_name in player_names %}
-                <option value="{{ player_name  }}">
-                    {{ player_name }}
-                </option>
-            {% endfor %}
-        </select> 
+        Enter player name: 
+        <table id="search_area">
+            <tr>
+                <td>
+                    <input type="text" id="player_name_search_box" oninput="searchPlayer(this)">
+                </td>
+            </tr>
+            <tr>
+                <td class="search_suggestion" id="search_suggestion_1">
+                </td>
+            </tr>
+            <tr>
+                <td class="search_suggestion" id="search_suggestion_2">
+                </td>
+            </tr>
+            <tr>
+                <td class="search_suggestion" id="search_suggestion_3">
+                </td>
+            </tr>
+        </table>
 
         <br><br>
 
@@ -248,13 +276,13 @@
     </body>
     <script>
         function findSimilarities() {
-            let player_name = document.getElementById("player_name").value;
+            let temp = document.getElementById("player_name_search_box").value.split(", ");
+            let player_name = temp[0];
+            let team_name = temp[1];
             let attributes = getSelectedAttributes();
             let k = document.getElementById("k").value;
             let age_range = [$("#age_slider").slider("values", 0), $("#age_slider").slider("values", 1)];
             let teams = getSelectedTeams();
-            console.log(attributes);
-            console.log(teams);
 
             let elem = document.getElementById("results_table");
             let table_code = "Finding " + k + " closest matches to " + player_name + "...";
@@ -266,6 +294,7 @@
                 url: "/findSimilarities",
                 type: "post",
                 data: {"player_name": player_name,
+                       "team_name": team_name,
                        "attributes": JSON.stringify(attributes),
                        "k": k,
                        "age_range": JSON.stringify(age_range),
@@ -275,12 +304,16 @@
                 // response: the players that are most similar
                 // JSONified 2-d array of size k x 3, [Name, Team, Similarity Score]
                 // We go through this array and fill in the table
-                let data = JSON.parse(response);
+                let similar_players = JSON.parse(response);
+                if(similar_players[0] == "ERROR") {
+                    elem.innerHTML = "<h1>ERROR: Player does not exist</h1>";
+                    return;
+                }
                 let table_code = "<table border='1'><thead><th>Name</th><th>Team</th><th>Score</th></thead><tbody>";
-                for(let i = 0; i < data.length; i += 1) {
-                    table_code = table_code + "<tr><td>" + data[i][0] + "</td>";
-                    table_code = table_code + "<td>" + data[i][1] + "</td>";
-                    table_code = table_code + "<td>" + data[i][2] + "</td></tr>";
+                for(let i = 0; i < similar_players.length; i += 1) {
+                    table_code = table_code + "<tr><td>" + similar_players[i][0] + "</td>";
+                    table_code = table_code + "<td>" + similar_players[i][1] + "</td>";
+                    table_code = table_code + "<td>" + similar_players[i][2] + "</td></tr>";
                 }
                 table_code += "</tbody></table>";
                 elem.innerHTML = table_code;
@@ -316,11 +349,11 @@
             
             return selected_attributes;
         }
-        function selectOrUnselectAll(elem, type) {
+        function selectOrUnselectAll(checkbox, type) {
             let tds = document.getElementsByClassName(type);
 
             for(let i = 0; i < tds.length; i += 1) {
-                if(elem.checked) {
+                if(checkbox.checked) {
                     select(tds[i]);
                 }
                 else {
@@ -355,6 +388,32 @@
         }
         function unselect(elem) {
             elem.style.color = elem.style.backgroundColor = '';
+        }
+        function searchPlayer(player_search_box) {
+            let query = player_search_box.value;
+                
+            // making an ajax request to the server with the name of the player, the attributes, the range of ages, 
+            // the teams, and k     
+            let request = $.ajax({
+                url: "/searchPlayers",
+                type: "post",
+                data: {"query": query}
+            });
+            request.done(function(response, textStatus, XHR) {
+                // response: the players that most closely match the query
+                // JSONified array
+                let search_suggestions = JSON.parse(response);
+                for(let i = 0; i < search_suggestions.length; i += 1) {   
+                    let search_suggestion_td = document.getElementById("search_suggestion_" + (i + 1));
+                    search_suggestion_td.innerText = search_suggestions[i];     
+                    search_suggestion_td.style.display = "block";
+                    search_suggestion_td.onclick = function() {player_search_box.value = search_suggestions[i]; $(".search_suggestion").css("display", "none");};
+                }
+                
+            });
+            request.fail(function(jqXHR, textStatus, errorThrown) {
+                console.error(errorThrown);
+            });
         }
     </script>
 </html>

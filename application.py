@@ -7,6 +7,9 @@ from flask import Flask, render_template, request
 import json
 from attributes_and_teams import *
 
+# import difflib
+from fuzzywuzzy.fuzz import partial_ratio
+
 application = Flask(__name__)
 
 players_df = None
@@ -14,6 +17,7 @@ players_df = None
 
 def loadData(f_name):
     global players_df
+
     players_df = pd.read_csv(f_name)
     players_df = players_df.drop(
         [
@@ -117,14 +121,14 @@ def findkNN(player, k=5, attributes_to_compare=[]):
     return similar_players
 
 
-def filterData(min_age, max_age, player_name, teams, attributes_to_compare):
+def filterData(min_age, max_age, player_name, team_name, teams, attributes_to_compare):
     global players_df
 
     for i in range(len(players_df)):
         player = players_df.iloc[i]
-        if (min_age <= player["age"] <= max_age and player["squad"] in teams) or player[
-            "name"
-        ] == player_name:
+        if min_age <= player["age"] <= max_age and player["squad"] in teams:
+            pass
+        elif player["name"] == player_name and player["squad"] == team_name:
             pass
         else:
             players_df["name"].iloc[i] = "undefined"
@@ -137,20 +141,18 @@ def filterData(min_age, max_age, player_name, teams, attributes_to_compare):
 def index():
     global players_df
 
-    player_names = sorted(list(players_df["name"]))
     overall_max_age = max(players_df["age"])
     overall_min_age = min(players_df["age"])
 
     return render_template(
         "index.html",
-        player_names=player_names,
+        overall_min_age=overall_min_age,
+        overall_max_age=overall_max_age,
         attacking_attributes=attacking_attributes,
         defensive_attributes=defensive_attributes,
         dribbling_attributes=dribbling_attributes,
         passing_attributes=passing_attributes,
         discipline_attributes=discipline_attributes,
-        overall_min_age=overall_min_age,
-        overall_max_age=overall_max_age,
         english_teams=english_teams,
         spanish_teams=spanish_teams,
         german_teams=german_teams,
@@ -166,6 +168,7 @@ def findSimilarities():
     min_age, max_age = json.loads(request.form["age_range"])
     k = int(request.form["k"])
     player_name = request.form["player_name"]
+    team_name = request.form["team_name"]
     attributes_to_compare = json.loads(request.form["attributes"])
     teams = json.loads(request.form["teams"])
 
@@ -185,15 +188,39 @@ def findSimilarities():
             + discipline_attributes
         )
 
-    filterData(min_age, max_age, player_name, teams, attributes_to_compare)
+    filterData(min_age, max_age, player_name, team_name, teams, attributes_to_compare)
     scaleData()
 
-    player = players_df[players_df["name"] == player_name].iloc[0]
-    players_df = players_df[players_df["name"] != player_name]
+    try:
+        player = players_df[
+            (players_df["name"] == player_name) & (players_df["squad"] == team_name)
+        ].iloc[0]
+    except IndexError:
+        return json.dumps(["ERROR"])
+    players_df = players_df[
+        (players_df["name"] != player_name) | (players_df["squad"] != team_name)
+    ]
 
     similar_players = findkNN(player, k, attributes_to_compare)
     loadData("./Data/Top5Leagues_201920_Stats.csv")
     return json.dumps(similar_players)
+
+
+@application.route("/searchPlayers", methods=["POST"])
+def searchPlayers():
+    query = request.form["query"]
+
+    closest_matches = []
+    word_closeness_scores = [
+        [-partial_ratio(query.lower(), word.lower()), word]
+        for word in list(players_df["name"] + ", " + players_df["squad"])
+    ]
+    heapq.heapify(word_closeness_scores)
+
+    for i in range(3):
+        closest_matches.append(heapq.heappop(word_closeness_scores)[1])
+
+    return json.dumps(closest_matches)
 
 
 loadData("./Data/Top5Leagues_201920_Stats.csv")
