@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>
+            Home
+        </title>   
+    </head>
+    <body>
+        {% for season in seasons %}
+            <input type="button" value="{{ season }}" onclick="window.location.href = '{{ url_for('similarities', season = season) }}';">
+            <br>
+        {% endfor %}
+    </body>
+</html>

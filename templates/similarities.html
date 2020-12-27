@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>
+            Similarities
+        </title>   
+        <style>
+            span.attribute {
+                border: 1px solid black;
+                margin: 20px 20px 20px 20px;
+            }
+            td.attribute {
+                text-align: center;
+            }
+            td.attribute, th.attribute_category {
+                border: 1px solid black;
+            }
+            td.attribute:hover, th.attribute_category:hover {
+                cursor: pointer;
+                background-color: #FF0000;
+                color: #FFFFFF;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="search_area">
+            Player name: <input type="text" id="search_box">
+        </div>
+        <div id="attributes_table">
+            <table>
+                <thead>
+                    {% for attribute in ATTRIBUTES.keys() %}
+                        <th class="attribute_category">
+                            {{ attribute }}
+                        </th>    
+                    {% endfor %}
+                </thead>
+                <tbody>
+                    {% for i in range(ATTRIBUTES["Defending"] | length) %}
+                        <tr>
+                            {% for attribute in ATTRIBUTES.keys() %}
+                                {% if i < ATTRIBUTES[attribute] | length %}
+                                    <td class="attribute">
+                                        {{ ATTRIBUTES[attribute][i] }}
+                                    </td>
+                                {% else %}
+                                    <td>
+                                    </td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div id="position_selector">
+            {% for position in positions %}
+                <input type="checkbox" value="{{ position }}">
+                    {{ position }}
+            {% endfor %}
+        </div>
+    </body>
+</html>
