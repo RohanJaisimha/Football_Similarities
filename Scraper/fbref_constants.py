@@ -3,7 +3,6 @@ COLUMNS_RENAMING_MAP = {
     "Team Name_": "Team Name",
     "Player": "Player Name",
     "Nation": "Nationality",
-    "Pos": "Position",
     "Age": "Age",
     "Standard_Gls": "Goals",
     "Standard_Sh": "Shots",
@@ -60,6 +59,11 @@ COLUMNS_RENAMING_MAP = {
     "Aerial Duels_Won": "Aerial Duels Won",
     "Aerial Duels_Lost": "Aerial Duels Lost",
     "Playing Time_Min": "Minutes",
+    "Ast": "Assists",
+    "KP": "Key Passes",
+    "1/3": "Passes into Final Third",
+    "PPA": "Passes into Penalty Area",
+    "CrsPA": "Crosses into Penalty Area",
 }
 
 
@@ -120,6 +124,22 @@ UNWANTED_COLUMNS = [
     "Performance_2CrdY",
     "Performance_Int",
     "Performance_TklW",
+    "Total_Cmp",
+    "Total_Att",
+    "Total_Cmp%",
+    "Total_TotDist",
+    "Total_PrgDist",
+    "Short_Cmp",
+    "Short_Att",
+    "Short_Cmp%",
+    "Medium_Cmp",
+    "Medium_Att",
+    "Medium_Cmp%",
+    "Long_Cmp",
+    "Long_Att",
+    "Long_Cmp%",
+    "A-xA",
+    "Prog",
 ]
 
 BIG_5_TABLE_URL = "https://fbref.com/en/comps/Big5/{}/{}-Big-5-European-Leagues-Stats"

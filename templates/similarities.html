@@ -9,55 +9,259 @@
                 border: 1px solid black;
                 margin: 20px 20px 20px 20px;
             }
-            td.attribute {
-                text-align: center;
+            ul.attribute_list, ul.team_list {
+                list-style-type: none; 
             }
-            td.attribute, th.attribute_category {
-                border: 1px solid black;
-            }
-            td.attribute:hover, th.attribute_category:hover {
-                cursor: pointer;
-                background-color: #FF0000;
-                color: #FFFFFF;
+            td[class*="_list"] {
+                vertical-align: top;
             }
         </style>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js" integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
     </head>
     <body>
         <div id="search_area">
-            Player name: <input type="text" id="search_box">
+            <select id="search_box" placeholder="Enter a name">
+                <option value="">
+                    Enter a name
+                </option>
+                {% for player_name in player_names %}
+                    <option value="{{ player_name }}">
+                        {{ player_name }}
+                    </option>
+                {% endfor %}
+            </select>
         </div>
-        <div id="attributes_table">
+        <div id="attribute_selector">
+            Attributes:
             <table>
                 <thead>
-                    {% for attribute in ATTRIBUTES.keys() %}
+                    {% for attribute_type in ATTRIBUTES.keys() %}
                         <th class="attribute_category">
-                            {{ attribute }}
+                            <input type="checkbox" checked onchange="selectOrUnselectAll(this, '{{ attribute_type }}')">
+                                {{ attribute_type }}
                         </th>    
                     {% endfor %}
                 </thead>
                 <tbody>
-                    {% for i in range(ATTRIBUTES["Defending"] | length) %}
-                        <tr>
-                            {% for attribute in ATTRIBUTES.keys() %}
-                                {% if i < ATTRIBUTES[attribute] | length %}
-                                    <td class="attribute">
-                                        {{ ATTRIBUTES[attribute][i] }}
-                                    </td>
-                                {% else %}
-                                    <td>
-                                    </td>
-                                {% endif %}
-                            {% endfor %}
-                        </tr>
+                    <tr>
+                    {% for attribute_type in ATTRIBUTES.keys() %}
+                        <td class="{{attribute}}_attribute_list">
+                            <ul class="attribute_list">
+                                {% for attribute in ATTRIBUTES[attribute_type] %}
+                                    <li class="attribute">
+                                        <input type="checkbox" checked class="{{ attribute_type }} attribute" value="{{ attribute }}">
+                                            {{ attribute }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    {% endfor %}    
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="team_selector">
+            Teams:
+            <table>
+                <thead>
+                    {% for country in teams.keys() %}
+                        <th class="country">
+                            <input type="checkbox" checked onchange="selectOrUnselectAll(this, '{{ country }}')">
+                                {{ country }}
+                        </th>    
                     {% endfor %}
+                </thead>
+                <tbody>
+                    <tr>
+                        {% for country in teams.keys() %}
+                            <td class="{{country}}_teams_list">
+                                <ul class="team_list">
+                                    {% for team in teams[country] %}
+                                        <li class="team">
+                                            <input type="checkbox" checked class="{{ country }} team" value="{{ team }}">
+                                                {{ team }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        {% endfor %}    
+                    </tr>
                 </tbody>
             </table>
         </div>
         <div id="position_selector">
+            Choose position:
             {% for position in positions %}
-                <input type="checkbox" value="{{ position }}">
+                <input type="checkbox" value="{{ position }}" class="position" checked>
                     {{ position }}
             {% endfor %}
         </div>
+        <div id="age_selector">
+            Min Age (inclusive):
+            <select id="min_age_selector">
+                {% for age in age_range %}
+                    <option value="{{ age }}">
+                        {{ age }}
+                    </option>
+                {% endfor %}
+            </select>
+            <br>
+            Max Age (inclusive):
+            <select id="max_age_selector">
+                {% for age in age_range %}
+                    {% if age == age_range | max %}
+                        <option value="{{ age }}" selected>
+                    {% else %}
+                        <option value="{{ age }}">
+                    {% endif %}
+                        {{ age }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div id="k_selector">
+            k:
+            <select id="k_dropdown">
+                {% for k in [5, 10, 20, 25, 50] %}
+                    <option value="{{ k }}">
+                        {{ k }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <input type="button" value="Go!" onclick="findSimilarities()">
+        <div id="results_table_area">
+        </div>
     </body>
+    <script>
+         $(document).ready(function () {
+            $("#search_box").selectize({
+                sortField: "text"
+            });
+        });
+        function findSimilarities() {
+            let player_name = getPlayerName();
+            let attributes_to_consider = getAttributesToConsider();
+            let teams_to_consider = getTeamsToConsider();
+            let positions_to_consider = getPositionsToConsider();
+            let min_age = getMinAge();
+            let max_age = getMaxAge();
+            let k = getK();
+            if(!validateInput(player_name, attributes_to_consider, teams_to_consider, positions_to_consider)) {
+                return;
+            }
+            if(max_age < min_age) {
+                let t = max_age;
+                max_age = min_age;
+                min_age = t;
+            }
+            let request = $.ajax({
+				url: "/findSimilarities",
+				type: "post",
+				data: {
+                    "player_name": player_name,
+                    "attributes_to_consider": JSON.stringify(attributes_to_consider),
+                    "teams_to_consider": JSON.stringify(teams_to_consider),
+                    "positions_to_consider": JSON.stringify(positions_to_consider), 
+                    "min_age": min_age,
+                    "max_age": max_age,
+                    "k": k
+                }
+			});
+			request.done(function(response, textStatus, XHR) {
+				response = JSON.parse(response);
+                console.log(response);
+                let results_table_area = document.getElementById("results_table_area");
+                results_table_html = "<table id='results_table' border='1'>";
+                results_table_html += "<thead><tr><th>Name</th><th>Nationality</th><th>Team Name</th><th>Position</th><th>Age</th></tr></thead><tbody>";
+                for(let i = 0; i < response.length; i += 1) {
+                    results_table_html += "<tr>";
+                    for(let j = 0; j < response[i].length; j += 1) {   
+                        results_table_html += "<td>" + response[i][j] + "</td>";
+                    }
+                    results_table_html += "</tr>";
+                }
+                results_table_html += "</tbody></table>";
+                results_table_area.innerHTML = results_table_html;
+			});
+			request.fail(function(jqXHR, textStatus, errorThrown) {
+				console.error(errorThrown);
+			});
+        }
+        function selectOrUnselectAll(elem, class_identifier) {
+            let checkboxes_to_change = document.getElementsByClassName(class_identifier);
+            for(let i = 0; i < checkboxes_to_change.length; i += 1) {  
+                checkboxes_to_change[i].checked = elem.checked;
+            }
+        }
+        function getAttributesToConsider() {
+            let attributes_to_consider = Array();
+            let checkboxes_for_attributes = document.getElementsByClassName("attribute");
+            for(let i = 0; i < checkboxes_for_attributes.length; i += 1) {
+                if(checkboxes_for_attributes[i].tagName.toUpperCase() === "INPUT" && checkboxes_for_attributes[i].checked) {
+                    attributes_to_consider.push(checkboxes_for_attributes[i].value);
+                }
+            }
+            return attributes_to_consider;
+        }
+        function getTeamsToConsider() {
+            let teams_to_consider = Array();
+            let checkboxes_for_teams = document.getElementsByClassName("team");
+            for(let i = 0; i < checkboxes_for_teams.length; i += 1) {
+                if(checkboxes_for_teams[i].tagName.toUpperCase() === "INPUT" && checkboxes_for_teams[i].checked) {
+                    teams_to_consider.push(checkboxes_for_teams[i].value);
+                }
+            }
+            return teams_to_consider;
+        }
+        function getPositionsToConsider() {
+            let positions_to_consider = Array();
+            let checkboxes_for_positions = document.getElementsByClassName("position");
+            for(let i = 0; i < checkboxes_for_positions.length; i += 1) {
+                if(checkboxes_for_positions[i].tagName.toUpperCase() === "INPUT" && checkboxes_for_positions[i].checked) {
+                    positions_to_consider.push(checkboxes_for_positions[i].value);
+                }
+            }
+            return positions_to_consider;
+        }
+        function getMinAge() {
+            let min_age_selector = document.getElementById("min_age_selector");
+            return parseInt(min_age_selector.value);
+        }
+        function getMaxAge() {
+            let max_age_selector = document.getElementById("max_age_selector");
+            return parseInt(max_age_selector.value);
+        }
+        function getK() {
+            let k_selector = document.getElementById("k_dropdown");
+            return parseInt(k_selector.value);
+        }
+        function getPlayerName() {
+            let search_box = document.getElementById("search_box");
+            return search_box.value;
+        }
+        function validateInput(player_name, attributes_to_consider, teams_to_consider, positions_to_consider) {
+            if(!player_name) {     
+                alert("Enter a name");
+                return false;
+            }       
+            else if(attributes_to_consider.length === 0) {
+                alert("Check atleast one attribute");
+                return false;
+            }
+            else if(teams_to_consider.length === 0) {
+                alert("Check atleast one team");
+                return false;
+            }
+            else if(positions_to_consider.length === 0) {
+                alert("Check atleast one position");
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+    </script>
 </html>

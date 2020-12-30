@@ -4,6 +4,7 @@ import unidecode
 import pandas as pd
 from functools import reduce
 from fbref_constants import *
+import re
 
 
 overall_df = pd.DataFrame([])
@@ -37,6 +38,7 @@ def get_team_data(team_id, season, team_name, team_country):
 
     table_id_prefixes = [
         "stats_shooting_",
+        "stats_passing_",
         "stats_gca_",
         "stats_defense_",
         "stats_possession_",
@@ -49,7 +51,10 @@ def get_team_data(team_id, season, team_name, team_country):
         for table_id in table_id_prefixes
     ]
 
-    dfs = [pd.read_html(str(table))[0] for table in tables]
+    dfs = []
+    for table in tables:
+        df = pd.read_html(str(table))[0]
+        dfs.append(df)
 
     team_df = reduce(lambda df1, df2: pd.concat([df1, df2], join="inner", axis=1), dfs)
     team_df = team_df.loc[:, ~team_df.columns.duplicated()]
@@ -64,20 +69,18 @@ def get_team_data(team_id, season, team_name, team_country):
 
 def main():
     team_urls_map = get_team_urls_map(BIG_5_TABLE_URL.format(SEASON, SEASON))
-    i = 0
-    for team_name in team_urls_map:
+    for i, team_name in enumerate(team_urls_map):
         if i % (len(team_urls_map) // 10) == 0:
             print(i)
         get_team_data(
             team_urls_map[team_name][0], SEASON, team_name, team_urls_map[team_name][1]
         )
-        i += 1
 
     overall_df.columns = [
         c[0] + "_" + c[1] if "Unnamed:" not in c[0] else c[1]
         for c in overall_df.columns
     ]
-    overall_df.to_csv("../Data/Top5Leagues_{}.csv".format(SEASON))
+    overall_df.to_csv(FILENAME)
 
 
 if __name__ == "__main__":

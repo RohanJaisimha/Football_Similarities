@@ -1,5 +1,6 @@
 import pandas as pd
 from fbref_constants import *
+from numpy import isnan
 
 
 def isNumeric(a):
@@ -36,10 +37,14 @@ def cleanAgeAndNation(df):
     ages = []
     nations = []
     for i in range(len(df)):
-        if not pd.isnull(df.iloc[i]["Age"]) and not isNumeric(df.iloc[i]["Age"]):
-            ages.append(df.iloc[i]["Age"].split("-")[0])
+        if not isNumeric(df.iloc[i]["Age"]):
+            ages.append(int(df.iloc[i]["Age"].split("-")[0]))
         else:
-            ages.append(None)
+            ages.append(
+                int(df.iloc[i]["Age"])
+                if df.iloc[i]["Age"] and not isnan(df.iloc[i]["Age"])
+                else None
+            )
         if not pd.isnull(df.iloc[i]["Nation"]):
             nations.append(df.iloc[i]["Nation"].split()[-1])
         else:
@@ -47,6 +52,35 @@ def cleanAgeAndNation(df):
 
     df["Age"] = ages
     df["Nation"] = nations
+    return df
+
+
+def cleanPositions(df):
+    position_1 = []
+    position_2 = []
+    position_3 = []
+
+    for i in range(len(df)):
+        positions = df.iloc[i]["Pos"].split(",")
+        if len(positions) == 1:
+            position_1.append(positions[0])
+            position_2.append(None)
+            position_3.append(None)
+        elif len(positions) == 2:
+            position_1.append(positions[0])
+            position_2.append(positions[1])
+            position_3.append(None)
+        else:
+            position_1.append(positions[0])
+            position_2.append(positions[1])
+            position_3.append(positions[2])
+
+    df["Position 1"] = position_1
+    df["Position 2"] = position_2
+    df["Position 3"] = position_3
+
+    df = df.drop("Pos", axis=1)
+
     return df
 
 
@@ -71,11 +105,13 @@ def main():
     df = removeSquadTotalAndOpponentTotal(df)
     df = removeGoalkeepers(df)
     df = cleanAgeAndNation(df)
+    df = cleanPositions(df)
     df = renameColumns(df)
 
     print(df.shape)
 
     df.to_csv(FILENAME, index=False)
+    # df.to_csv("../Data/test_Top5_{}.csv".format(SEASON), index=False)
 
 
 if __name__ == "__main__":

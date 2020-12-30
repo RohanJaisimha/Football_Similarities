@@ -1,5 +1,18 @@
 ATTRIBUTES = {
-    "Attacking": ["Goals", "Shots", "Shots on Target", "xG", "npxG", "SCA", "GCA"],
+    "Attacking": [
+        "Goals",
+        "Shots",
+        "Shots on Target",
+        "xG",
+        "npxG",
+        "SCA",
+        "GCA",
+        "Assists",
+        "Key Passes",
+        "Passes into Final Third",
+        "Passes into Penalty Area",
+        "Crosses into Penalty Area",
+    ],
     "Defending": [
         "Tackles Attempted",
         "Tackles Won",
