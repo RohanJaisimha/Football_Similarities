@@ -67,3 +67,5 @@ ATTRIBUTES = {
         "Aerial Duels Lost",
     ],
 }
+
+POSITIONS_DELIMITER = ","

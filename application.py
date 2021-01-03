@@ -2,17 +2,21 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import heapq
-from flask import Flask, render_template, request
+from flask import Flask, session, render_template, request
 import json
 import os
 import re
 from constants import *
 import random
+from flask_session import Session
+
 
 application = Flask(__name__)
 
-df = None
-SEASON = None
+SECRET_KEY = os.urandom(24)
+SESSION_TYPE = "filesystem"
+application.config.from_object(__name__)
+Session(application)
 
 
 @application.route("/")
@@ -26,20 +30,19 @@ def home():
 
 
 def prepareDf():
-    global df
+    season = session["season"]
 
-    filename = "./Data/Top5Leagues_{}.csv".format(SEASON)
+    filename = "./Data/Top5Leagues_{}.csv".format(season)
     df = pd.read_csv(filename)
+    session["df"] = df.to_json()
     scaleDf()
 
 
 @application.route("/similarities/<season>", methods=["GET"])
 def similarities(season):
-    global SEASON
-    global df
-
-    SEASON = season
+    session["season"] = season
     prepareDf()
+    df = pd.read_json(session["df"])
 
     positions = ["DF", "MF", "FW"]
     age_range = range(int(min(df["Age"])), int(max(df["Age"])) + 1)
@@ -52,7 +55,7 @@ def similarities(season):
         positions=positions,
         age_range=age_range,
         teams=teams,
-        player_names=player_names
+        player_names=player_names,
     )
 
 
@@ -81,6 +84,7 @@ def findSimilarities():
 
     return json.dumps(k_most_similar_players)
 
+
 def removeUnneededRowsAndColumns(
     player_name,
     teams_to_consider,
@@ -89,7 +93,7 @@ def removeUnneededRowsAndColumns(
     min_age,
     max_age,
 ):
-    global df
+    df = pd.read_json(session["df"])
 
     df = df[
         attributes_to_consider
@@ -117,13 +121,14 @@ def removeUnneededRowsAndColumns(
         | ((df["Age"] >= min_age) & (df["Age"] <= max_age))
     ]
 
+    session["df"] = df.to_json()
+
 
 def getSimilarityScores(player_name, attributes_to_consider):
-    global df
+    df = pd.read_json(session["df"])
 
     similarity_scores = []
     main_player = df[df["Player Name"] == player_name].iloc[0]
-    # df = df.drop(main_player)
 
     for i in range(len(df)):
         other_player = df.iloc[i]
@@ -133,12 +138,16 @@ def getSimilarityScores(player_name, attributes_to_consider):
                 main_player[attribute_to_consider] - other_player[attribute_to_consider]
             ) ** 2
         similarity_score **= 0.5
-        position = "{},{},{}".format(
+        position = "{}{}{}{}{}".format(
             other_player["Position 1"],
+            POSITIONS_DELIMITER,
             other_player["Position 2"],
+            POSITIONS_DELIMITER,
             other_player["Position 3"],
         )
-        position = position.replace(",nan", "")
+        position = position.replace(POSITIONS_DELIMITER + "nan", "").replace(
+            POSITIONS_DELIMITER + "None", ""
+        )
         similarity_scores.append(
             [
                 similarity_score,
@@ -146,7 +155,7 @@ def getSimilarityScores(player_name, attributes_to_consider):
                 other_player["Nationality"],
                 other_player["Team Name"],
                 position,
-                other_player["Age"],
+                int(other_player["Age"]),
             ]
         )
 
@@ -166,7 +175,8 @@ def getKMostSimilarPlayers(similarity_scores, k):
 
 
 def scaleDf():
-    global df
+    df = pd.read_json(session["df"])
+
     attributes_not_to_be_scaled = [
         "Player Name",
         "Nationality",
@@ -182,9 +192,11 @@ def scaleDf():
     scaler = MinMaxScaler()
     df[attributes_to_be_scaled] = scaler.fit_transform(df[attributes_to_be_scaled])
 
+    session["df"] = df.to_json()
+
 
 def getTeams():
-    global df
+    df = pd.read_json(session["df"])
 
     teams = {}
     for i in range(len(df)):
