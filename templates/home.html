@@ -3,9 +3,19 @@
     <head>
         <title>
             Home
-        </title>   
+        </title>  
+        <link rel="shortcut icon" href="#">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/credits.css') }}">
     </head>
     <body>
+        <div id="credits">
+            <a href="https://www.fbref.com">  
+                <img src="{{ url_for('static', filename='img/fbref_logo.jpg')}}" alt="fbref_logo" height=50px>
+            </a>
+            <a href="https://statsbomb.com">
+                <img src="{{ url_for('static', filename='img/statsbomb_logo.png')}}" alt="statsbomb_logo" height=50px>
+            </a>
+        </div>
         {% for season in seasons %}
             <input type="button" value="{{ season }}" onclick="window.location.href = '{{ url_for('similarities', season = season) }}';">
             <br>

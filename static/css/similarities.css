@@ -1,0 +1,10 @@
+span.attribute {
+    border: 1px solid black;
+    margin: 20px 20px 20px 20px;
+}
+ul.attribute_list, ul.team_list {
+    list-style-type: none; 
+}
+td[class*="_list"] {
+    vertical-align: top;
+}
