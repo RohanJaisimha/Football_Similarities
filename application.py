@@ -9,7 +9,8 @@ import re
 from constants import *
 import random
 from flask_session import Session
-
+from functools import reduce
+from itertools import chain
 
 application = Flask(__name__)
 
@@ -35,7 +36,57 @@ def prepareDf():
     filename = "./Data/Top5Leagues_{}.csv".format(season)
     df = pd.read_csv(filename)
     session["df"] = df.to_json()
+    convertDfToPer90()
     scaleDf()
+
+
+def convertDfToPer90():
+    df = pd.read_json(session["df"])
+
+    columns_to_be_per_90 = reduce(chain, ATTRIBUTES.values())
+    for column in columns_to_be_per_90:
+        df[column] = df[column] / df["Minutes"] * 90
+
+    session["df"] = df.to_json()
+
+
+def scaleDf():
+    df = pd.read_json(session["df"])
+
+    attributes_not_to_be_scaled = [
+        "Player Name",
+        "Nationality",
+        "Team Name",
+        "Position 1",
+        "Position 2",
+        "Position 3",
+        "Age",
+        "Team Country",
+    ]
+    attributes_to_be_scaled = list(set(df.columns) - set(attributes_not_to_be_scaled))
+
+    scaler = MinMaxScaler()
+    df[attributes_to_be_scaled] = scaler.fit_transform(df[attributes_to_be_scaled])
+
+    session["df"] = df.to_json()
+
+
+def getTeams():
+    df = pd.read_json(session["df"])
+
+    teams = {}
+    for i in range(len(df)):
+        player = df.iloc[i]
+        team_country = player["Team Country"]
+        team_name = player["Team Name"]
+        if team_country not in teams:
+            teams[team_country] = set()
+        teams[team_country].add(team_name)
+
+    for team_country in teams:
+        teams[team_country] = sorted(list(teams[team_country]))
+
+    return teams
 
 
 @application.route("/similarities/<season>", methods=["GET"])
@@ -138,6 +189,7 @@ def getSimilarityScores(player_name, attributes_to_consider):
                 main_player[attribute_to_consider] - other_player[attribute_to_consider]
             ) ** 2
         similarity_score **= 0.5
+
         position = "{}{}{}{}{}".format(
             other_player["Position 1"],
             POSITIONS_DELIMITER,
@@ -145,9 +197,9 @@ def getSimilarityScores(player_name, attributes_to_consider):
             POSITIONS_DELIMITER,
             other_player["Position 3"],
         )
-        position = position.replace(POSITIONS_DELIMITER + "nan", "").replace(
-            POSITIONS_DELIMITER + "None", ""
-        )
+        position = position.replace(POSITIONS_DELIMITER + "nan", "")
+        position = position.replace(POSITIONS_DELIMITER + "None", "")
+
         similarity_scores.append(
             [
                 similarity_score,
@@ -172,45 +224,6 @@ def getKMostSimilarPlayers(similarity_scores, k):
         k_most_similar_players.append(similar_player[1:])
 
     return k_most_similar_players
-
-
-def scaleDf():
-    df = pd.read_json(session["df"])
-
-    attributes_not_to_be_scaled = [
-        "Player Name",
-        "Nationality",
-        "Team Name",
-        "Position 1",
-        "Position 2",
-        "Position 3",
-        "Age",
-        "Team Country",
-    ]
-    attributes_to_be_scaled = list(set(df.columns) - set(attributes_not_to_be_scaled))
-
-    scaler = MinMaxScaler()
-    df[attributes_to_be_scaled] = scaler.fit_transform(df[attributes_to_be_scaled])
-
-    session["df"] = df.to_json()
-
-
-def getTeams():
-    df = pd.read_json(session["df"])
-
-    teams = {}
-    for i in range(len(df)):
-        player = df.iloc[i]
-        team_country = player["Team Country"]
-        team_name = player["Team Name"]
-        if team_country not in teams:
-            teams[team_country] = set()
-        teams[team_country].add(team_name)
-
-    for team_country in teams:
-        teams[team_country] = sorted(list(teams[team_country]))
-
-    return teams
 
 
 if __name__ == "__main__":
