@@ -1,3 +1,6 @@
+# change this
+SEASON = "2019-2020"
+
 COLUMNS_RENAMING_MAP = {
     "Team Country_": "Team Country",
     "Team Name_": "Team Name",
@@ -44,8 +47,6 @@ COLUMNS_RENAMING_MAP = {
     "Carries_PrgDist": "Progressive Distance via Carries",
     "Receiving_Targ": "Pass Targets",
     "Receiving_Rec": "Passes Received",
-    "Miscon": "Miscontrols",
-    "Dispos": "Dispossessions",
     "Performance_CrdY": "Yellow Cards",
     "Performance_CrdR": "Red Cards",
     "Performance_Fls": "Fouls",
@@ -64,6 +65,10 @@ COLUMNS_RENAMING_MAP = {
     "1/3": "Passes into Final Third",
     "PPA": "Passes into Penalty Area",
     "CrsPA": "Crosses into Penalty Area",
+    "Carries_1/3": "Carries into Final Third",
+    "Carries_CPA": "Carries into Penalty Area",
+    "Carries_Mis": "Miscontrols",
+    "Carries_Dis": "Dispossessions",
 }
 
 
@@ -140,12 +145,10 @@ UNWANTED_COLUMNS = [
     "Long_Cmp%",
     "A-xA",
     "Prog",
+    "Carries_Prog",
 ]
 
 BIG_5_TABLE_URL = "https://fbref.com/en/comps/Big5/{}/{}-Big-5-European-Leagues-Stats"
 TEAM_URL = "https://fbref.com/en/squads/{}/{}/{}-Stats"
-
-# change this
-SEASON = "2019-2020"
 
 FILENAME = "../Data/Top5Leagues_{}.csv".format(SEASON)
