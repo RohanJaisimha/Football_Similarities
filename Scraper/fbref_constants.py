@@ -1,5 +1,5 @@
 # change this
-SEASON = "2019-2020"
+SEASON = "2020-2021"
 
 COLUMNS_RENAMING_MAP = {
     "Team Country_": "Team Country",
