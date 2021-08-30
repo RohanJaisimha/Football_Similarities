@@ -1,5 +1,5 @@
 # change this
-SEASON = "2020-2021"
+SEASON = "2021-2022"
 
 COLUMNS_RENAMING_MAP = {
     "Team Country_": "Team Country",
@@ -97,7 +97,6 @@ UNWANTED_COLUMNS = [
     "GCA Types_Sh",
     "GCA Types_Fld",
     "GCA Types_Def",
-    "GCA Types_OG",
     "Vs Dribbles_Tkl%",
     "Pressures_%",
     "Tkl+Int",
