@@ -1,123 +1,123 @@
 $(document).ready(function () {
-    $("#search_box").selectize({
+    $("#searchBox").selectize({
         sortField: "text"
     });
 });
 function findSimilarities() {
-    let player_name = getPlayerName();
-    let attributes_to_consider = getAttributesToConsider();
-    let teams_to_consider = getTeamsToConsider();
-    let positions_to_consider = getPositionsToConsider();
-    let min_age = getMinAge();
-    let max_age = getMaxAge();
+    let playerName = getPlayerName();
+    let attributesToConsider = getAttributesToConsider();
+    let teamsToConsider = getTeamsToConsider();
+    let positionsToConsider = getPositionsToConsider();
+    let minAge = getMinAge();
+    let maxAge = getMaxAge();
     let k = getK();
-    if(!validateInput(player_name, attributes_to_consider, teams_to_consider, positions_to_consider)) {
+    if (!validateInput(playerName, attributesToConsider, teamsToConsider, positionsToConsider)) {
         return;
     }
-    if(max_age < min_age) {
-        let t = max_age;
-        max_age = min_age;
-        min_age = t;
+    if (maxAge < minAge) {
+        let t = maxAge;
+        maxAge = minAge;
+        minAge = t;
     }
     let request = $.ajax({
         url: "/findSimilarities",
         type: "post",
         data: {
-            "player_name": player_name,
-            "attributes_to_consider": JSON.stringify(attributes_to_consider),
-            "teams_to_consider": JSON.stringify(teams_to_consider),
-            "positions_to_consider": JSON.stringify(positions_to_consider), 
-            "min_age": min_age,
-            "max_age": max_age,
+            "playerName": playerName,
+            "attributesToConsider": JSON.stringify(attributesToConsider),
+            "teamsToConsider": JSON.stringify(teamsToConsider),
+            "positionsToConsider": JSON.stringify(positionsToConsider),
+            "minAge": minAge,
+            "maxAge": maxAge,
             "k": k
         }
     });
-    request.done(function(response, textStatus, XHR) {
+    request.done(function (response, textStatus, XHR) {
         response = JSON.parse(response);
         console.log(response);
-        let results_table_area = document.getElementById("results_table_area");
-        results_table_html = "<table id='results_table' border='1'>";
-        results_table_html += "<thead><tr><th>Name</th><th>Nationality</th><th>Team Name</th><th>Position</th><th>Age</th></tr></thead><tbody>";
-        for(let i = 0; i < response.length; i += 1) {
-            results_table_html += "<tr>";
-            for(let j = 0; j < response[i].length; j += 1) {   
-                results_table_html += "<td>" + response[i][j] + "</td>";
+        let resultsTableArea = document.getElementById("resultsTableArea");
+        resultsTableHtml = "<table id='resultsTable' border='1'>";
+        resultsTableHtml += "<thead><tr><th>Name</th><th>Nationality</th><th>Team Name</th><th>Position</th><th>Age</th></tr></thead><tbody>";
+        for (let i = 0; i < response.length; i += 1) {
+            resultsTableHtml += "<tr>";
+            for (let j = 0; j < response[i].length; j += 1) {
+                resultsTableHtml += "<td>" + response[i][j] + "</td>";
             }
-            results_table_html += "</tr>";
+            resultsTableHtml += "</tr>";
         }
-        results_table_html += "</tbody></table>";
-        results_table_area.innerHTML = results_table_html;
+        resultsTableHtml += "</tbody></table>";
+        resultsTableArea.innerHTML = resultsTableHtml;
     });
-    request.fail(function(jqXHR, textStatus, errorThrown) {
+    request.fail(function (jqXHR, textStatus, errorThrown) {
         console.error(errorThrown);
     });
 }
-function selectOrUnselectAll(elem, class_identifier) {
-    let checkboxes_to_change = document.getElementsByClassName(class_identifier);
-    for(let i = 0; i < checkboxes_to_change.length; i += 1) {  
-        checkboxes_to_change[i].checked = elem.checked;
+function selectOrUnselectAll(elem, classIdentifier) {
+    let checkboxesToChange = document.getElementsByClassName(classIdentifier);
+    for (let i = 0; i < checkboxesToChange.length; i += 1) {
+        checkboxesToChange[i].checked = elem.checked;
     }
 }
 function getAttributesToConsider() {
-    let attributes_to_consider = Array();
-    let checkboxes_for_attributes = document.getElementsByClassName("attribute");
-    for(let i = 0; i < checkboxes_for_attributes.length; i += 1) {
-        if(checkboxes_for_attributes[i].tagName.toUpperCase() === "INPUT" && checkboxes_for_attributes[i].checked) {
-            attributes_to_consider.push(checkboxes_for_attributes[i].value);
+    let attributesToConsider = Array();
+    let checkboxesForAttributes = document.getElementsByClassName("attribute");
+    for (let i = 0; i < checkboxesForAttributes.length; i += 1) {
+        if (checkboxesForAttributes[i].tagName.toUpperCase() === "INPUT" && checkboxesForAttributes[i].checked) {
+            attributesToConsider.push(checkboxesForAttributes[i].value);
         }
     }
-    return attributes_to_consider;
+    return attributesToConsider;
 }
 function getTeamsToConsider() {
-    let teams_to_consider = Array();
-    let checkboxes_for_teams = document.getElementsByClassName("team");
-    for(let i = 0; i < checkboxes_for_teams.length; i += 1) {
-        if(checkboxes_for_teams[i].tagName.toUpperCase() === "INPUT" && checkboxes_for_teams[i].checked) {
-            teams_to_consider.push(checkboxes_for_teams[i].value);
+    let teamsToConsider = Array();
+    let checkboxesForTeams = document.getElementsByClassName("team");
+    for (let i = 0; i < checkboxesForTeams.length; i += 1) {
+        if (checkboxesForTeams[i].tagName.toUpperCase() === "INPUT" && checkboxesForTeams[i].checked) {
+            teamsToConsider.push(checkboxesForTeams[i].value);
         }
     }
-    return teams_to_consider;
+    return teamsToConsider;
 }
 function getPositionsToConsider() {
-    let positions_to_consider = Array();
-    let checkboxes_for_positions = document.getElementsByClassName("position");
-    for(let i = 0; i < checkboxes_for_positions.length; i += 1) {
-        if(checkboxes_for_positions[i].tagName.toUpperCase() === "INPUT" && checkboxes_for_positions[i].checked) {
-            positions_to_consider.push(checkboxes_for_positions[i].value);
+    let positionsToConsider = Array();
+    let checkboxesForPositions = document.getElementsByClassName("position");
+    for (let i = 0; i < checkboxesForPositions.length; i += 1) {
+        if (checkboxesForPositions[i].tagName.toUpperCase() === "INPUT" && checkboxesForPositions[i].checked) {
+            positionsToConsider.push(checkboxesForPositions[i].value);
         }
     }
-    return positions_to_consider;
+    return positionsToConsider;
 }
 function getMinAge() {
-    let min_age_selector = document.getElementById("min_age_selector");
-    return parseInt(min_age_selector.value);
+    let minAgeSelector = document.getElementById("minAgeSelector");
+    return parseInt(minAgeSelector.value);
 }
 function getMaxAge() {
-    let max_age_selector = document.getElementById("max_age_selector");
-    return parseInt(max_age_selector.value);
+    let maxAgeSelector = document.getElementById("maxAgeSelector");
+    return parseInt(maxAgeSelector.value);
 }
 function getK() {
-    let k_selector = document.getElementById("k_dropdown");
-    return parseInt(k_selector.value);
+    let kSelector = document.getElementById("kDropdown");
+    return parseInt(kSelector.value);
 }
 function getPlayerName() {
-    let search_box = document.getElementById("search_box");
-    return search_box.value;
+    let searchBox = document.getElementById("searchBox");
+    return searchBox.value;
 }
-function validateInput(player_name, attributes_to_consider, teams_to_consider, positions_to_consider) {
-    if(!player_name) {     
+function validateInput(playerName, attributesToConsider, teamsToConsider, positionsToConsider) {
+    if (!playerName) {
         alert("Enter a name");
         return false;
-    }       
-    else if(attributes_to_consider.length === 0) {
+    }
+    else if (attributesToConsider.length === 0) {
         alert("Check atleast one attribute");
         return false;
     }
-    else if(teams_to_consider.length === 0) {
+    else if (teamsToConsider.length === 0) {
         alert("Check atleast one team");
         return false;
     }
-    else if(positions_to_consider.length === 0) {
+    else if (positionsToConsider.length === 0) {
         alert("Check atleast one position");
         return false;
     }

@@ -2,9 +2,9 @@ span.attribute {
     border: 1px solid black;
     margin: 20px 20px 20px 20px;
 }
-ul.attribute_list, ul.team_list {
+ul.attributeList, ul.teamList {
     list-style-type: none; 
 }
-td[class*="_list"] {
+td[class*="List"] {
     vertical-align: top;
 }

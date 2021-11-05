@@ -1,141 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>
-            Similarities
-        </title>   
-    
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js" integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
-        <script type="text/javascript" src="{{ url_for('static', filename='js/similarities.js') }}"></script>
-        <link rel="shortcut icon" href="#">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/credits.css') }}">
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/similarities.css') }}">
-    </head>
-    <body>
-        <div id="credits">
-            <a href="https://www.fbref.com">  
-                <img src="{{ url_for('static', filename='img/fbref_logo.jpg')}}" alt="fbref_logo" height=50px>
-            </a>
-            <a href="https://statsbomb.com">
-                <img src="{{ url_for('static', filename='img/statsbomb_logo.png')}}" alt="statsbomb_logo" height=50px>
-            </a>
-        </div>
-        <div id="search_area">
-            Player Name:
-            <select id="search_box" placeholder="Enter a name">
-                <option value="">
-                    Enter a name
-                </option>
-                {% for player_name in player_names %}
-                    <option value="{{ player_name }}">
-                        {{ player_name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-        <br>
-        <div id="attribute_selector">
-            Attributes:
-            <table>
-                <thead>
-                    {% for attribute_type in ATTRIBUTES.keys() %}
-                        <th class="attribute_category">
-                            <input type="checkbox" checked onchange="selectOrUnselectAll(this, '{{ attribute_type }}')">
-                                {{ attribute_type }}
-                        </th>    
-                    {% endfor %}
-                </thead>
-                <tbody>
-                    <tr>
-                    {% for attribute_type in ATTRIBUTES.keys() %}
-                        <td class="{{attribute}}_attribute_list">
-                            <ul class="attribute_list">
-                                {% for attribute in ATTRIBUTES[attribute_type] %}
-                                    <li class="attribute">
-                                        <input type="checkbox" checked class="{{ attribute_type }} attribute" value="{{ attribute }}">
-                                            {{ attribute }}
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        </td>
-                    {% endfor %}    
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div id="team_selector">
-            Teams:
-            <table>
-                <thead>
-                    {% for country in teams.keys() %}
-                        <th class="country">
-                            <input type="checkbox" checked onchange="selectOrUnselectAll(this, '{{ country }}')">
-                                {{ country }}
-                        </th>    
-                    {% endfor %}
-                </thead>
-                <tbody>
-                    <tr>
-                        {% for country in teams.keys() %}
-                            <td class="{{country}}_teams_list">
-                                <ul class="team_list">
-                                    {% for team in teams[country] %}
-                                        <li class="team">
-                                            <input type="checkbox" checked class="{{ country }} team" value="{{ team }}">
-                                                {{ team }}
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                        {% endfor %}    
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div id="position_selector">
-            Choose position:
-            {% for position in positions %}
-                <input type="checkbox" value="{{ position }}" class="position" checked>
-                    {{ position }}
+
+<head>
+    <title>
+        Similarities
+    </title>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js"
+        integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/similarities.js') }}"></script>
+    <link rel="shortcut icon" href="#">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css"
+        integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/credits.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/similarities.css') }}">
+</head>
+
+<body>
+    <div id="credits">
+        <a href="https://www.fbref.com">
+            <img src="{{ url_for('static', filename='img/fbrefLogo.jpg')}}" alt="fbrefLogo" height=50px>
+        </a>
+        <a href="https://statsbomb.com">
+            <img src="{{ url_for('static', filename='img/statsbombLogo.png')}}" alt="statsbombLogo" height=50px>
+        </a>
+    </div>
+    <div id="searchArea">
+        Player Name:
+        <select id="searchBox" placeholder="Enter a name">
+            <option value="">
+                Enter a name
+            </option>
+            {% for playerName in playerNames %}
+            <option value="{{ playerName }}">
+                {{ playerName }}
+            </option>
             {% endfor %}
-        </div>
-        <div id="age_selector">
-            Min Age (inclusive):
-            <select id="min_age_selector">
-                {% for age in age_range %}
-                    <option value="{{ age }}">
-                        {{ age }}
-                    </option>
+        </select>
+    </div>
+    <br>
+    <div id="attributeSelector">
+        Attributes:
+        <table>
+            <thead>
+                {% for attributeType in ATTRIBUTES.keys() %}
+                <th class="attributeCategory">
+                    <input type="checkbox" checked onchange="selectOrUnselectAll(this, '{{ attributeType }}')">
+                    {{ attributeType }}
+                </th>
                 {% endfor %}
-            </select>
-            <br>
-            Max Age (inclusive):
-            <select id="max_age_selector">
-                {% for age in age_range %}
-                    {% if age == age_range | max %}
-                        <option value="{{ age }}" selected>
-                    {% else %}
-                        <option value="{{ age }}">
-                    {% endif %}
-                        {{ age }}
-                    </option>
+            </thead>
+            <tbody>
+                <tr>
+                    {% for attributeType in ATTRIBUTES.keys() %}
+                    <td class="{{attribute}}AttributeList">
+                        <ul class="attributeList">
+                            {% for attribute in ATTRIBUTES[attributeType] %}
+                            <li class="attribute">
+                                <input type="checkbox" checked class="{{ attributeType }} attribute"
+                                    value="{{ attribute }}">
+                                {{ attribute }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="teamSelector">
+        Teams:
+        <table>
+            <thead>
+                {% for country in teams.keys() %}
+                <th class="country">
+                    <input type="checkbox" checked onchange="selectOrUnselectAll(this, '{{ country }}')">
+                    {{ country }}
+                </th>
                 {% endfor %}
-            </select>
-        </div>
-        <div id="k_selector">
-            k:
-            <select id="k_dropdown">
-                {% for k in [5, 10, 20, 25, 50] %}
-                    <option value="{{ k }}">
-                        {{ k }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-        <input type="button" value="Go!" onclick="findSimilarities()">
-        <div id="results_table_area">
-        </div>
-    </body>
+            </thead>
+            <tbody>
+                <tr>
+                    {% for country in teams.keys() %}
+                    <td class="{{country}}TeamsList">
+                        <ul class="teamList">
+                            {% for team in teams[country] %}
+                            <li class="team">
+                                <input type="checkbox" checked class="{{ country }} team" value="{{ team }}">
+                                {{ team }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="positionSelector">
+        Choose position:
+        {% for position in positions %}
+        <input type="checkbox" value="{{ position }}" class="position" checked>
+        {{ position }}
+        {% endfor %}
+    </div>
+    <div id="ageSelector">
+        Min Age (inclusive):
+        <select id="minAgeSelector">
+            {% for age in ageRange %}
+            <option value="{{ age }}">
+                {{ age }}
+            </option>
+            {% endfor %}
+        </select>
+        <br>
+        Max Age (inclusive):
+        <select id="maxAgeSelector">
+            {% for age in ageRange %}
+            {% if age == ageRange | max %}
+            <option value="{{ age }}" selected>
+                {% else %}
+            <option value="{{ age }}">
+                {% endif %}
+                {{ age }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div id="kSelector">
+        k:
+        <select id="kDropdown">
+            {% for k in [5, 10, 20, 25, 50] %}
+            <option value="{{ k }}">
+                {{ k }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <input type="button" value="Go!" onclick="findSimilarities()">
+    <div id="resultsTableArea">
+    </div>
+</body>
+
 </html>
