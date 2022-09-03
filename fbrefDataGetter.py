@@ -3,11 +3,17 @@ from bs4 import BeautifulSoup
 from functools import reduce
 from numpy import isnan
 
+import datetime
+import logging
 import pandas as pd
 import requests
 import sys
 import unidecode
 
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S')
 
 mainDf = pd.DataFrame([])
 
@@ -17,7 +23,7 @@ def getTeamUrlsMap(url):
     table = soup.find_all("table", {"id": "big5_table"})[0]
 
     teamUrlsMap = {}
-    for td in table.find_all("td", {"data-stat": "squad"}):
+    for td in table.find_all("td", {"data-stat": "team"}):
         teamName = unidecode.unidecode(td.text.strip())
         teamName = teamName.replace(" ", "-")
         teamUrl = td.find("a")["href"].split("/")[3]
@@ -68,10 +74,11 @@ def getTeamData(teamId, season, teamName, teamCountry):
 
 
 def scrapeData(season):
+    logging.info(f"Scraping {season}...")
     teamUrlsMap = getTeamUrlsMap(BIG_5_TABLE_URL.format(season, season))
     for i, teamName in enumerate(teamUrlsMap):
         if i % (len(teamUrlsMap) // 7) == 0:
-            print(f"Scraped {i} teams")
+            logging.info(f"Scraped {i} teams")
         getTeamData(
             teamUrlsMap[teamName][0], season, teamName, teamUrlsMap[teamName][1]
         )
@@ -174,9 +181,8 @@ def renameColumns(df):
 
 
 def sanitizeData(season):
+    logging.info(f"Sanitizing {season}...")
     df = pd.read_csv(FILENAME_TEMPLATE.format(season))
-
-    print(df.shape)
 
     df = removeP90Columns(df)
     df = removeMatchesColumns(df)
@@ -186,8 +192,6 @@ def sanitizeData(season):
     df = cleanAgeAndNation(df)
     df = cleanPositions(df)
     df = renameColumns(df)
-
-    print(df.shape)
 
     df.to_csv(FILENAME_TEMPLATE.format(season), index=False)
 
